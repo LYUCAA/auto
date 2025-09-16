@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>音節選擇小遊戲</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: linear-gradient(135deg, #b7eaff 0%, #f6e0fe 100%);
+      font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    .container {
+      max-width: 480px;
+      margin: 40px auto;
+      background: #fff7e6;
+      border-radius: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+      padding: 32px 16px 48px 16px;
+      position: relative;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2rem;
+      color: #7c4cff;
+      margin-bottom: 0;
+    }
+    .question {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .options {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+    .option-btn {
+      border: none;
+      background: #ffe2e2;
+      border-radius: 16px;
+      padding: 24px 32px;
+      font-size: 2rem;
+      color: #ff4f4f;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: transform 0.13s, background 0.13s;
+      position: relative;
+      outline: none;
+    }
+    .option-btn:hover, .option-btn:focus {
+      transform: scale(1.09);
+      background: #ffd6d6;
+    }
+    .option-btn .cartoon {
+      display: block;
+      font-size: 2.8rem;
+      margin-bottom: 8px;
+    }
+    .feedback {
+      font-size: 1.15rem;
+      color: #3d85c6;
+      margin-top: 14px;
+      min-height: 32px;
+      font-weight: 500;
+    }
+    /* Balloons */
+    .balloon {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      width: 60px;
+      height: 80px;
+      opacity: 0.8;
+      transform: translateX(-50%) scale(0.7);
+      animation: balloon-float 2.6s cubic-bezier(.76,.01,.19,1) forwards;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .balloon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.12));
+    }
+    @keyframes balloon-float {
+      0% { opacity: 0.8; transform: translateX(-50%) scale(0.7) translateY(0);}
+      90% { opacity: 1; transform: translateX(-50%) scale(1) translateY(-220px);}
+      100% { opacity: 0; transform: translateX(-50%) scale(1.1) translateY(-300px);}
+    }
+    /* Cartoon character */
+    .cartoon-character {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 100px;
+      z-index: 5;
+    }
+    .cartoon-character svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="cartoon-character">
+      <!-- Cute bunny SVG -->
+      <svg viewBox="0 0 100 100">
+        <ellipse cx="50" cy="60" rx="38" ry="38" fill="#fff" stroke="#e0d5c9" stroke-width="2"/>
+        <ellipse cx="30" cy="30" rx="16" ry="35" fill="#fff" stroke="#e0d5c9" stroke-width="2"/>
+        <ellipse cx="70" cy="30" rx="16" ry="35" fill="#fff" stroke="#e0d5c9" stroke-width="2"/>
+        <circle cx="50" cy="68" r="20" fill="#fff" stroke="#e0d5c9" stroke-width="2"/>
+        <ellipse cx="40" cy="68" rx="4" ry="6" fill="#ffe2e2"/>
+        <ellipse cx="60" cy="68" rx="4" ry="6" fill="#ffe2e2"/>
+        <circle cx="44" cy="72" r="2.2" fill="#333"/>
+        <circle cx="56" cy="72" r="2.2" fill="#333"/>
+        <ellipse cx="50" cy="80" rx="5" ry="2" fill="#ffb6c1"/>
+        <path d="M46 82 Q50 85 54 82" stroke="#333" stroke-width="1.2" fill="none"/>
+      </svg>
+    </div>
+    <h1>歡迎來到這裡！</h1>
+    <div class="question">
+      請選擇我們上節課的第一題，哪個係正確的“da”？
+    </div>
+    <div class="options">
+      <button class="option-btn" data-correct="true">
+        <span class="cartoon">🐰</span>
+        da
+      </button>
+      <button class="option-btn" data-correct="false">
+        <span class="cartoon">🐶</span>
+        ga
+      </button>
+    </div>
+    <div class="feedback"></div>
+    <!-- Audio elements -->
+    <audio id="correct" src="https://github.com/LYUCAA/auto/raw/main/da387-170ms.wav"></audio>
+    <audio id="wrong" src="https://github.com/LYUCAA/auto/raw/main/ga.wav"></audio>
+    <audio id="pop" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124b5c2b33.mp3"></audio>
+  </div>
+  <script>
+    const options = document.querySelectorAll('.option-btn');
+    const feedback = document.querySelector('.feedback');
+    const correctAudio = document.getElementById('correct');
+    const wrongAudio = document.getElementById('wrong');
+    const popAudio = document.getElementById('pop');
+    // Balloon SVGs
+    const balloonSVGs = [
+      `<svg viewBox="0 0 60 80"><ellipse cx="30" cy="35" rx="24" ry="32" fill="#ffb6c1"/><rect x="26" y="67" width="8" height="13" rx="4" fill="#888"/><path d="M30,68 Q32,75 30,80" stroke="#888" stroke-width="2" fill="none"/></svg>`,
+      `<svg viewBox="0 0 60 80"><ellipse cx="30" cy="35" rx="24" ry="32" fill="#b6eaff"/><rect x="26" y="67" width="8" height="13" rx="4" fill="#888"/><path d="M30,68 Q32,75 30,80" stroke="#888" stroke-width="2" fill="none"/></svg>`,
+      `<svg viewBox="0 0 60 80"><ellipse cx="30" cy="35" rx="24" ry="32" fill="#ffd700"/><rect x="26" y="67" width="8" height="13" rx="4" fill="#888"/><path d="M30,68 Q32,75 30,80" stroke="#888" stroke-width="2" fill="none"/></svg>`,
+      `<svg viewBox="0 0 60 80"><ellipse cx="30" cy="35" rx="24" ry="32" fill="#98fb98"/><rect x="26" y="67" width="8" height="13" rx="4" fill="#888"/><path d="M30,68 Q32,75 30,80" stroke="#888" stroke-width="2" fill="none"/></svg>`
+    ];
+    function showBalloons() {
+      const container = document.querySelector('.container');
+      for (let i = 0; i < 4; i++) {
+        setTimeout(() => {
+          const balloon = document.createElement('div');
+          balloon.className = 'balloon';
+          balloon.style.left = `${50 + (Math.random()-0.5)*80}%`;
+          balloon.innerHTML = balloonSVGs[i%balloonSVGs.length];
+          container.appendChild(balloon);
+          popAudio.currentTime = 0;
+          popAudio.play();
+          setTimeout(() => balloon.remove(), 2600);
+        }, i*400);
+      }
+    }
+    options.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const isCorrect = btn.dataset.correct === "true";
+        if (isCorrect) {
+          correctAudio.currentTime = 0;
+          correctAudio.play();
+          feedback.textContent = "太棒啦！你選對了！";
+          showBalloons();
+        } else {
+          wrongAudio.currentTime = 0;
+          wrongAudio.play();
+          feedback.textContent = "可以再想想哦～";
+        }
+        // Animate button
+        btn.style.transform = "scale(1.15)";
+        setTimeout(() => btn.style.transform = "", 250);
+      });
+    });
+  </script>
+</body>
+</html>
